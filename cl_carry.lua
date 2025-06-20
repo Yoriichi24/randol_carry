@@ -53,6 +53,38 @@ local function beingCarriedLoop(id)
     plyState:set('beingCarried', nil, true)
 end
 
+exports.ox_target:addGlobalPlayer({
+    name = 'carry',
+    distance = 1.5,
+    label = 'Carry',
+    icon = 'fas fa-hand-holding',
+    onSelect = function(data)
+        TriggerServerEvent('randol_carry:attemptCarry')
+    end,
+})
+
+local cancelCarryKeybind = lib.addKeybind({
+    name = 'cancelCarry',
+    description = 'Cancelar Carry',
+    defaultKey = 'X',
+    onPressed = function(self)
+        TriggerServerEvent('randol_carry:cancelCarry')
+    end,
+})
+
+
+lib.onCache('vehicle', function(newVehicle, oldVehicle)
+    local ped = PlayerPedId()
+
+    -- If player just got into a vehicle
+    if newVehicle and newVehicle ~= 0 then
+        -- Check if ped is on a bike/motorcycle
+        if IsPedOnAnyBike(ped) then
+            TriggerServerEvent('randol_carry:cancelCarry')
+        end
+    end
+end)
+
 AddStateBagChangeHandler('isCarrying', ('player:%s'):format(cache.serverId), function(_, _, value)
     if value then carryingLoop(value) end
 end)
